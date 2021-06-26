@@ -15,6 +15,11 @@ class Sample:
         self.volume = volume
         self.repeat_offset = repeat_offset
         self.repeat_length = repeat_length
+        self.data = None
+
+    def store(self, data):
+        """Stores the actual sample data for later use."""
+        self.data = data
 
     def __str__(self):
         """Provides a human-readable one-line summary."""

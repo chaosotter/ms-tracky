@@ -43,6 +43,9 @@ class Mod:
         for i in range(self.pattern_count):
             self.patterns.append(self._consume_pattern())
 
+        for samp in self.samples:
+            samp.store(self._consume_sample(samp.length))
+
     def _consume_byte(self):
         """Consumes a single byte."""
         code = self.data[self.offset]
@@ -58,11 +61,11 @@ class Mod:
 
     def _consume_note(self):
         data = self.data[self.offset:self.offset+4]
-        sample = (data[0] & 0xf0) | ((data[2] & 0xf0) >> 4)
+        samp = (data[0] & 0xf0) | ((data[2] & 0xf0) >> 4)
         period = ((data[0] & 0x0f) << 8) | data[1]
         effect = ((data[2] & 0x0f) << 8) | data[3]
         self.offset += 4
-        return note.Note(sample, period, effect)
+        return note.Note(samp, period, effect)
 
     def _consume_pattern(self):
         rows = []
@@ -75,6 +78,11 @@ class Mod:
         for i in range(4):  # assume 4 channels
             notes.append(self._consume_note())
         return row.Row(notes)
+
+    def _consume_sample(self, count):
+        data = self.data[self.offset:self.offset+count]
+        self.offset += count
+        return data
 
     def _consume_sample_header(self):
         name = self._consume_string(22)
