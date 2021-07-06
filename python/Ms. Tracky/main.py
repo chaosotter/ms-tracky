@@ -13,24 +13,25 @@ def main():
 
     for samp in m.samples:
         print('Sample: {}'.format(samp))
-        #stream.write(samp.data)
 
         notes = [214, 170, 143]  # C4, E4, G4
         for n in notes:
-            scale = 44100.0 / (2 * 8287.14)  # extend samples this many units for middle C
-            extend = scale * (n / 214.0)  # extend samples this many units for this note
-            print(scale, extend)
-
+            samps = samp.play(n, 0.5)
             data = bytearray()
-            rem = 0.0
-            for s in samp.data:
-                rem += extend
-                while rem > 1:
-                    data.append(s & 0xff)
-                    data.append((s & 0xff00) >> 8)
-                    rem -= 1
-
+            for s in samps:
+                data.append(s & 0xff)
+                data.append((s & 0xff00) >> 8)
             stream.write(bytes(data))
+
+        s1 = samp.play(214, 0.5)
+        s2 = samp.play(170, 0.5)
+        s3 = samp.play(143, 0.5)
+        data = bytearray()
+        for i in range(len(s1)):
+            s = int((s1[i] + s2[i] + s3[i]) / 3)
+            data.append(s & 0xff)
+            data.append((s & 0xff00) >> 8)
+        stream.write(bytes(data))
 
     stream.stop_stream()
     stream.close()
