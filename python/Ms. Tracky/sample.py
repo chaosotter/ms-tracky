@@ -15,8 +15,8 @@ class Sample:
         self.length = length
         self.finetune = finetune
         self.volume = volume
-        self.repeat_offset = repeat_offset
-        self.repeat_length = repeat_length
+        self.repeat_offset = repeat_offset * 2  # because of upsampling
+        self.repeat_length = repeat_length * 2  # because of upsampling
         self.data = None
 
     def store(self, data):
@@ -40,13 +40,15 @@ class Sample:
             self.data.append(last)
             self.data.append(last)
 
-    def play(self, pitch=214, duration=1):
-        """Play the sample at the given pitch for the given duration.
+    def play(self, period=214, duration=1, volume=None):
+        """Play the sample with the given period, duration, and volume.
 
         Args:
-          pitch (int): Expressed using the "period" values stored in the MOD
+          period (int): Expressed using the "period" values stored in the MOD
               file format, where 214 is middle C, 170 is E above middle C, etc.
           duration (float): The number of seconds to play the sample.
+          volume (int): Expressed using the range [0, 64], with 64 being the
+              loudest.  If None, then use the "native" volume of the sample.
 
         If the sample isn't long enough to last for the full duration, we try
         to apply the repetition settings.  Otherwise, the end of the return
@@ -54,16 +56,15 @@ class Sample:
 
         We assume a 44100-Hz output channel.
         """
-        if not len(self.data):
-            return []
-
         # number of output samples per internal sample
-        extend = self.SCALE * (pitch / 214.0)
+        extend = self.SCALE * (period / 214.0)
+        volume = (volume if volume else self.volume) / 64
 
         data = []
         count = int(44100 * duration)
         offset = 0
         repeating = False
+        empty = len(self.data) == 0
 
         hold = extend
         while count:
@@ -75,16 +76,16 @@ class Sample:
                     if offset > (self.repeat_offset + self.repeat_length):
                         offset = self.repeat_offset
                 elif offset >= len(self.data):
-                    if self.repeat_length:
+                    if self.repeat_length > 4:  # *2 for words->bytes, *2 for upsampling
                         repeating = True
                         offset = self.repeat_offset
                     else:
-                        offset = None
+                        empty = True
 
-            if offset is None:
+            if empty:
                 data.append(0)
             else:
-                data.append(self.data[offset])
+                data.append(self.data[offset] * volume)
 
             hold -= 1
             count -= 1
@@ -93,5 +94,6 @@ class Sample:
 
     def __str__(self):
         """Provides a human-readable one-line summary."""
+        print("len = {}, repeat = {}, rlen = {}".format(len(self.data), self.repeat_offset, self.repeat_length))
         return '"{}" [{} bytes, volume {}, finetune {}, repeat({}, {})]'.format(
             self.name, self.length, self.volume, self.finetune, self.repeat_offset, self.repeat_length)
