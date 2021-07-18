@@ -12,7 +12,7 @@ $(document).ready(function() {
     text.justification = 'center';
     text.fillColor = 'white';
     text.fontSize = 20;
-    text.content = 'Hello, world!';cvfffffffrtttttttttttttttttttttttttttttttt
+    text.content = 'Hello, world!';
 
     var tool = new Tool();
     tool.onMouseDown = function(event) {
