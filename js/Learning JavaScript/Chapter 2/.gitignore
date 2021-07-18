@@ -9,5 +9,5 @@ node_modules
 *~
 
 # transpiled ES5 output
-dist
-public/dist
+dist/*
+public/dist/*
