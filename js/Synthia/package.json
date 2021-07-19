@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/chaosotter/synthia#readme",
   "dependencies": {
+    "@tarp/require": "^1.4.3",
     "google-closure-library": "^20210601.0.0",
     "readline-sync": "^1.4.10"
   }
